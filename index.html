@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gerador de PDF a partir de DOCX</title>
+</head>
+<body>
+  <h1>Preencha os campos para gerar um PDF</h1>
+  <form id="form">
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" name="nome" required><br><br>
+
+    <label for="telefone">Telefone:</label>
+    <input type="text" id="telefone" name="telefone" required><br><br>
+
+    <label for="valor">Valor:</label>
+    <input type="text" id="valor" name="valor" required><br><br>
+
+    <button type="button" onclick="gerarPDF()">Gerar PDF</button>
+  </form>
+
+  <script src="docxtemplater.js"></script>
+  <script src="pdfmake.min.js"></script>
+  <script>
+    function gerarPDF() {
+      // Obter os dados inseridos pelo usuário
+      var nome = document.getElementById("nome").value;
+      var telefone = document.getElementById("telefone").value;
+      var valor = document.getElementById("valor").value;
+
+      // Carregar o modelo DOCX
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "seu_modelo.docx", true);
+      xhr.responseType = "arraybuffer";
+
+      xhr.onload = function () {
+        var templateData = new Uint8Array(xhr.response);
+
+        // Preencher o modelo DOCX com os dados
+        var zip = new JSZip(templateData);
+        var doc = new Docxtemplater().loadZip(zip);
+        doc.setData({
+          nome: nome,
+          telefone: telefone,
+          valor: valor
+        });
+        doc.render();
+
+        // Converter o documento DOCX preenchido em PDF
+        var pdf = doc.getZip().generate({ type: "blob" });
+
+        // Exibir o PDF ou fazer o download
+        pdfMake.createPdf({ content: [{ image: pdf }]}).download("documento.pdf");
+      };
+
+      xhr.send();
+    }
+  </script>
+</body>
+</html>
